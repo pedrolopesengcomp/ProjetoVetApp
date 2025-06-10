@@ -5,9 +5,17 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from 'react-native';
 
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, set } from "firebase/database";
+
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const firebaseConfig = {
+      databaseURL: "https://projeto-veterinaria-b09fd-default-rtdb.firebaseio.com/",
+    };
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

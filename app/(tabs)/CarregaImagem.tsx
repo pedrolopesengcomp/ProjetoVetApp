@@ -5,51 +5,83 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
-import { initializeApp } from "firebase/app";
+import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set } from "firebase/database";
 
-// TODO: Replace the following with your app's Firebase project configuration
-// See: https://firebase.google.com/docs/web/learn-more#config-object
-const firebaseConfig = {
-  // ...
-  // The value of `databaseURL` depends on the location of the database
-  databaseURL: "https://projeto-veterinaria-b09fd-default-rtdb.firebaseio.com/",
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+/*import { getStorage, ref, uploadBytes } from "firebase/storage";*/
 
 
-// Initialize Realtime Database and get a reference to the service
-const database = getDatabase(app);
 
-let ID = 0
 
-//Envia a imagem ao Firebase
 
-const enviaImagem  = async function(imagem: string, ID: any){
-  set(ref(database, 'imagens/' + ID), {
-    img: imagem,
-    id: ID
-  })
-}
 
 export default function CarregaImagem(){
-    const [image, setImage] = useState<string | null>(null);
+  const firebaseConfig = {
+    databaseURL: "https://projeto-veterinaria-b09fd-default-rtdb.firebaseio.com/",
+  };
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
 
-    const pegaImagem = async()=>{
+  const [image, setImage] = useState<string>('');
+  const [uploading, setUploading] = useState<Boolean>(false);
+  const [imageURL, setImageURL] = useState<string>('');
+  let ID = 5
+
+  /*const storage = getStorage(app);*/
+  //const imagens = ref(storage, 'imagens/'+ID.toString+'.jpg');
+
+  const converterURIArquivo = async function(image:string){
+    const response = await fetch(image)
+    const arquivo = response.blob()
+    
+    return arquivo
+  }
+
+  const enviaImagem = async function(){
+    
+    const arquivo = await converterURIArquivo(image)
+
+    set(ref(database, 'imagens/' + ID), {
+      arquivo:image,
+      id:ID
+    });
+
+  alert('imagens/' + ID)
+  }
+
+  /*const enviaImagem = async function(){
+    const arquivo = await converterURIArquivo(image)
+
+    
+    await uploadBytes(imagens, arquivo).then((snapshot) => {
+      console.log('Upload concluido!');
+    });
+  }*/
+
+
+  /*const firebaseConfig = {
+    databaseURL: "https://projeto-veterinaria-b09fd-default-rtdb.firebaseio.com/",
+  };
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);*/
+
+    async function pegaImagem(){
         let resultado = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             aspect: [4,3],
             quality: 5
-        })
-        console.log(resultado)
+        }) 
+        ID++
+
 
         if(!resultado.canceled) //Ou seja, caso o resultado não seja cancelado
         {
             setImage(resultado.assets[0].uri) //Poe na variavel image o valor da imagem da galeria
         }
     }
+    
+    
+      
 
 
     return(
@@ -58,8 +90,14 @@ export default function CarregaImagem(){
                 Carregue a imagem da sua galeria
             </ThemedText>
             <ThemedButton text="Selecione a imagem" color="" style="" onPress={pegaImagem}></ThemedButton>
-            {image && <Image source={{ uri: image }} style={styles.image} />}
-            <ThemedButton text="Enviar para análise" color="" style="" onPress={pegaImagem}></ThemedButton>
+
+            {image && 
+            <Image source={{ uri: image }} style={styles.image} />
+
+            }
+            {image && 
+            <ThemedButton text="Enviar para análise" color="" style="" onPress={enviaImagem}></ThemedButton>}
+            
         </Page>
     )
 }

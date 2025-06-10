@@ -14,7 +14,8 @@ import { useRouter } from 'expo-router';
 
 const Stack = createStackNavigator();
 
-export default function Home() {
+export default function index() {
+  
   const { Navigator } = createStackNavigator();
     const navigation = useNavigation();
     const router = useRouter()

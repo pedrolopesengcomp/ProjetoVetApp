@@ -17,7 +17,7 @@ function MyStack() {
 export default function TabLayout(){
     return(
         <Stack>
-            <Stack.Screen name="Home"/>
+            <Stack.Screen name="index"/>
             <Stack.Screen name="CapturaImagem" />
             <Stack.Screen name="CarregaImagem" />
         </Stack>
