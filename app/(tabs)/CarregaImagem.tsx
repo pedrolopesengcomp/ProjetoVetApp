@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set } from "firebase/database";
+import { getDatabase } from "firebase/database";
 
 /*import { getStorage, ref, uploadBytes } from "firebase/storage";*/
 
@@ -31,22 +31,43 @@ export default function CarregaImagem(){
   //const imagens = ref(storage, 'imagens/'+ID.toString+'.jpg');
 
   const converterURIArquivo = async function(image:string){
-    const response = await fetch(image)
+    //Código feito para enviar ao firebase realtime database
+
+    /*const response = await fetch(image)
     const arquivo = response.blob()
     
-    return arquivo
+    return arquivo*/ 
+
+    const formData = new FormData(); // Simula um arquivo enviado para o HTML
+    await formData.append('image' , {
+      image,
+      type: "image/jpeg",
+      name:"imagem.jpg"
+    } as any)
+
+    return formData
   }
 
   const enviaImagem = async function(){
     
-    const arquivo = await converterURIArquivo(image)
+      const arquivo = await converterURIArquivo(image)
 
-    set(ref(database, 'imagens/' + ID), {
-      arquivo:image,
-      id:ID
-    });
+      const resposta = await fetch("ENDERECO", {
+        method:"POST",
+        body:arquivo
+      })
 
-  alert('imagens/' + ID)
+      const json = await resposta.json
+      console.log(json)
+
+      //Código feito para enviar a imagem ao realtime database do firebase
+          /*set(ref(database, 'imagens/' + ID), {
+            arquivo:image,
+            id:ID
+          });
+
+          alert('imagens/' + ID)*/
+    
   }
 
   /*const enviaImagem = async function(){
@@ -79,11 +100,6 @@ export default function CarregaImagem(){
             setImage(resultado.assets[0].uri) //Poe na variavel image o valor da imagem da galeria
         }
     }
-    
-    
-      
-
-
     return(
         <Page>
             <ThemedText type="title">
