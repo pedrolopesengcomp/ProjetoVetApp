@@ -23,6 +23,8 @@ export default function CarregaImagem(){
   const database = getDatabase(app);
 
   const [image, setImage] = useState<string>('');
+  const [nomeImage, setNomeImage] = useState<string>('');
+  const [resultImage,setResultImage] = useState<string>('')
   const [uploading, setUploading] = useState<Boolean>(false);
   const [imageURL, setImageURL] = useState<string>('');
   let ID = 5
@@ -35,30 +37,72 @@ export default function CarregaImagem(){
 
     /*const response = await fetch(image)
     const arquivo = response.blob()
-    
-    return arquivo*/ 
 
     const formData = new FormData(); // Simula um arquivo enviado para o HTML
     await formData.append('image' , {
-      image,
+      uri: arquivo,
       type: "image/jpeg",
       name:"imagem.jpg"
     } as any)
 
-    return formData
+    return formData*/
+
+    const byteString = atob(image.split(',')[1]); // Decodifica a string base64
+    const mimeString = image.split(',')[0].split(':')[1].split(';')[0]; // Extrai o tipo MIME
+
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    // Cria um objeto Blob a partir do ArrayBuffer
+    const blob = new Blob([ab], { type: mimeString });
+
+    const formData = new FormData();
+    // Anexa o Blob ao FormData, com o nome do campo 'image' que o backend espera
+    formData.append('image', blob, nomeImage);
+
+    return formData;
+  }
+
+  const recebeImagem = async function(nome: string){
+    //Rota para testar a YOLO
+    await fetch(`http://127.0.0.1:8000/teste/${nomeImage}`)
+
+      const resposta = await fetch("http://127.0.0.1:8000/imagens/" + nome, {
+        method: "GET"
+      })
+
+      // A resposta é um Blob (dados binários da imagem)
+      const imageBlob = await resposta.blob();
+
+      return imageBlob
   }
 
   const enviaImagem = async function(){
     
       const arquivo = await converterURIArquivo(image)
 
-      const resposta = await fetch("ENDERECO", {
+      console.log(arquivo.forEach)
+
+      const resposta = await fetch("http://127.0.0.1:8000/envio", {
         method:"POST",
         body:arquivo
       })
 
+      
+
       const json = await resposta.json
       console.log(json)
+
+      const resultado = await recebeImagem(nomeImage)
+
+      // Cria um URL de objeto a partir do Blob
+      const objectURL = URL.createObjectURL(resultado);
+
+      setResultImage(objectURL)
+      
 
       //Código feito para enviar a imagem ao realtime database do firebase
           /*set(ref(database, 'imagens/' + ID), {
@@ -98,6 +142,7 @@ export default function CarregaImagem(){
         if(!resultado.canceled) //Ou seja, caso o resultado não seja cancelado
         {
             setImage(resultado.assets[0].uri) //Poe na variavel image o valor da imagem da galeria
+            setNomeImage(`${resultado.assets[0].fileName}`)
         }
     }
     return(
@@ -113,6 +158,9 @@ export default function CarregaImagem(){
             }
             {image && 
             <ThemedButton text="Enviar para análise" color="" style="" onPress={enviaImagem}></ThemedButton>}
+
+            {resultImage && 
+            <Image source={{uri: resultImage}} style={styles.image}></Image>}
             
         </Page>
     )
